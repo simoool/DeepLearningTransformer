@@ -1,0 +1,320 @@
+1) FRASE DI INPUT
+
+    sentence =
+        "Oggi è una bellissima giornata."
+
+
+
+
+
+2) NORMALIZZAZIONE FRASE DI INPUT
+
+    normalized_sentence = normalizeString(sentence)
+    --> "oggi e una bellissima giornata ."
+
+
+
+
+
+3) TOKENIZZAZIONE --> Il modello non può essere addestrato direttamente sul testo.
+Crea un vettore con gli indici di ciascuna parola, con l'aggiunta dei token SOS, EOS e PAD per un totale di 62 elementi.
+
+    tokens = tokenize(normalized_sentence, input_dic)
+    --> [1, 552, 14, 61, 19512, 8947, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+
+
+
+
+4) TRASFORMAZIONE DELLA FRASE TOKENIZZATA IN TENSORE
+Restituisce un tensore a cui viene applicato il metodo unsqueeze, che restituisce un tensore monodimensionale (per questo viene aggiunta una []).
+
+    input_tensor = torch.LongTensor(tokens).unsqueeze(0).to(device)
+    --> tensor([[    1,   552,    14,    61, 19512,  8947,     2,     0,     0,     0,
+                     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                     0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+                     0,     0]])
+
+
+
+
+
+5) CREAZIONE MASCHERA
+Restituisce un vettore sulla base di input_tensor, con True se l'elemento è = 0, False altrimenti.
+Nel metodo make_input_mask, oltre a restituire True/False, vengono chiamati unsqueeze(1) e unsqueeze(2).
+
+    input_mask = model.make_input_mask(input_tensor)
+    --> tensor([[[[ True,  True,  True,  True,  True,  True,  True, False, False, False,
+                    False, False, False, False, False, False, False, False, False, False,
+                    False, False, False, False, False, False, False, False, False, False,
+                    False, False, False, False, False, False, False, False, False, False,
+                    False, False, False, False, False, False, False, False, False, False,
+                    False, False, False, False, False, False, False, False, False, False,
+                    False, False]]]])
+
+
+
+
+
+6) ENCODING
+
+Chiamando
+    encoded_input = model.encoder(input_tensor, input_mask)
+si passa all'encoder.
+
+L'encoder è composto da diversi layer attraverso cui passerà l'input. I componenti di ciascun layer sono:
+- MultiHeadAttention
+    In __init__:
+        - Inizializza hidden_size (256) e n_heads (8) controllando che il secondo sia divisibile per il primo, dopodichè ne calcola la divisione (32).
+        - Inizializza i layer lineari fc_query, fc_key, fc_value e fc_out passando hidden_size come numero sia di input sia di output.
+        - Inizializza il modulo per il Dropout.
+        - Inizializza il coefficiente (radice di head_size) che verrà poi usato per il calcolo dell'energia.
+    In forward (si faccia riferimento alla figura in README):
+        - Riceve come parametri i tensori query, key e value. Questi hanno shape[0]=1, shape[1]=7, shape[2]=256.
+            query = 
+                tensor([[[-0.0478, -0.1981,  0.0605,  ...,  0.2932,  0.4549, -0.1525],
+                         [-0.5990, -0.1018,  0.6998,  ...,  1.3296, -0.3244, -0.3539],
+                         [-1.4246, -0.0400,  0.3898,  ...,  1.0566, -0.3620,  0.5352],
+                         ...,
+                         [-0.1146, -0.6827, -0.2865,  ...,  0.7259,  1.2851,  0.7560],
+                         [-1.6040,  0.2409,  2.2701,  ...,  0.5827, -0.3002, -1.0809],
+                         [-1.3697, -1.0577,  1.7604,  ...,  0.3072, -0.0625, -1.6343]]])
+        - Fa passare questi tensori attraverso i layer lineari. Qui mantengono la stessa dimensione del punto precedente.
+        - Applica ai tensori risultanti i metodi view e permute. Risulteranno dei tensori con dimensioni shape[0]=1, shape[1]=8, shape[2]=7, shape[3]=32.
+            --> view serve per ridimensionare il tensore con le dimensioni passate per parametro . -1 si usa nei casi in cui non siamo sicuri del valore che vogliamo di una delle dimensioni.
+            --> permute(0,2,1,3) fa si che l'elemento che era al primo posto rimanga dov'era (idx=0-->idx=0), l'elemento che era al terzo posto vada secondo (idx=2-->idx=1) e così via.
+                query_output =
+                    tensor([[[[-0.2075,  1.7819,  3.9621,  ...,  1.4328, -0.7232, -2.4760],
+                            [-0.7283,  0.2707,  3.5453,  ...,  1.3607, -0.9880, -1.5239],
+                            [ 1.2985, -1.7381,  2.7580,  ..., -0.9617,  1.2601, -0.2804],
+                            ...,
+                            [-3.4271,  1.2574, -0.1914,  ...,  0.6230, -0.8471, -1.3795],
+                            [-2.0247, -1.9859, -0.7966,  ..., -2.0255, -0.3551, -2.0804],
+                            [ 1.1345, -1.1084,  0.8695,  ..., -0.0778, -1.3297,  0.3963]],
+
+                            [[ 0.8202,  0.8202, -0.3591,  ..., -1.5555,  1.2859, -0.2284],
+                            [ 0.2025,  1.5660, -0.3936,  ..., -3.3086, -0.0636, -1.4251],
+                            [-0.2413,  2.0012, -0.1335,  ..., -0.7298, -0.2664,  0.2138],
+                            ...,
+                            [-0.5262,  1.7804, -0.0393,  ..., -0.5775,  3.0360, -2.8689],
+                            [-2.6407,  1.7871, -1.2271,  ..., -0.0762,  2.6848, -2.4322],
+                            [-2.1487, -1.2510, -0.6259,  ..., -0.7563,  1.0981, -1.7308]],
+
+                            ...,
+
+                            [[-1.1631,  0.9905, -0.3959,  ..., -0.2470, -1.8663,  1.3690],
+                            [ 1.6842,  1.5380,  1.3124,  ..., -3.5296, -0.4541,  1.7802],
+                            [-2.2654,  0.8812,  1.1414,  ..., -0.7868, -0.8923,  1.8463],
+                            ...,
+                            [ 0.6242, -2.2991,  2.5911,  ..., -1.4054,  2.5888,  2.3806],
+                            [ 1.5465,  1.3617,  1.2714,  ...,  0.6580,  1.5843,  1.4885],
+                            [-0.0427,  1.3146,  1.6561,  ...,  1.7994, -2.9881,  0.6532]],
+
+                            [[-0.3771,  1.4316, -1.9124,  ...,  0.6574, -0.3177,  0.4232],
+                            [-0.6132,  0.5314, -1.8412,  ...,  0.5895, -1.1855,  2.2449],
+                            [-2.8053,  3.6805, -3.2871,  ...,  0.5842, -0.4087, -0.9893],
+                            ...,
+                            [ 2.9812,  0.2365,  0.1514,  ...,  0.3749, -1.8226,  1.7059],
+                            [-0.1851, -1.1020, -1.2221,  ...,  2.6962, -2.8892,  1.4065],
+                            [ 0.3344,  1.4859, -1.6249,  ...,  3.5516, -1.0412,  1.2274]]]])
+        - Usa matmul per calcolare energy come prodotto dei tensori query e key (permutato), divisi per il coefficiente ottenuto in __init__. Il risultato sarà sempre un tensore con shape[0]=1, shape[1]=8, shape[2]=7, shape[3]=62.
+        - Applica la Softmax ottenendo un tensore della stessa dimensione del punto precedente.
+        - Usa nuovamente matmul per moltiplicare il risultato appena ottenuto per value. Il risultato sarà un tensore con shape[0]=1, shape[1]=8, shape[2]=7, shape[3]=32.
+        - Esegue la concatenazione ottenendo un tensore con dimensioni shape[0]=1, shape[1]=7, shape[2]=256.
+        - Infine fa passare il risultato attraverso l'ultimo layer lineare. La dimensione del tensore resta la stessa.
+
+- LayerNorm
+    Fa parte del modulo nn.
+
+- FeedForwardLayer
+    In __init__:
+        Viene inizializzato il layer come sequenza di: layer lineare, ReLU, Dropout e altro layer lineare.
+    in forward:
+        L'input viene fatto passare per il layer appena creato, quindi viene restituito l'output.
+
+- Dropout
+    Fa parte del modulo nn.
+
+- LayerNorm
+    Fa parte del modulo nn.
+
+
+Per quanto riguarda l'encoder nel suo complesso, invece, questo viene inizializzato con:
+- device;
+- Embedding te;
+- Embedding pe;
+- Sequenza di layer di encoding: encode_sequence, in cui ogni layer ha al suo interno i componenti spiegati sopra;
+- Dropout: dp;
+- Coefficiente: coefficient.
+
+Quindi si passa alla funzione forward(), in cui:
+- b_size = 1 --> perchè si ha una frase.
+- input_size = 62 --> perchè la lunghezza massima è di 60+2 (SOS e EOS).
+- pos = tensore analogo a input_tensor, che contiene gli indici da 0 a 61.
+- input =
+    tensor([[[ 0.1336, -0.5992, -0.1145,  ..., -0.3639,  0.1055,  0.3946],
+             [-0.2113,  0.9380,  0.2525,  ..., -0.8037, -0.2340, -0.7762],
+             [-0.9845, -0.4953,  0.4498,  ...,  0.0510,  0.4206,  0.1240],
+             ...,
+             [ 0.3687, -0.3739,  0.1713,  ...,  0.6021, -0.5039,  0.4465],
+             [ 0.1359, -0.3393,  0.1455,  ...,  0.2279, -0.1946,  0.0033],
+             [ 0.0653, -0.2389,  0.1251,  ...,  0.2665, -0.2064, -0.0317]]])
+    Per ottenerlo: l'embedding te viene applicato a input_tensor, mentre l'embedding pe a pos. Quindi si moltiplica il primo risultato per coefficient, poi si aggiunge il secondo risultato.
+    L'operazione appena descritta serve per effettuare il positional encoding, ma si aggiunge la moltiplicazione per il coefficiente così da non perdere troppa informazione relativa all'embedding.
+    Si ottiene quindi 1 tensore di 256 elementi (righe), ciascuno lungo 62 (colonne).
+
+Quindi l'input entra nell'encoder, in cui verrano applicati in sequenza i moduli descritti sopra (nello stesso ordine).
+Dopo aver attraversato tutti i layer di encoding viene fornito il risultato, che avra sempre dimensioni shape[0]=1, shape[1]=62, shape[2]=256:
+
+    encoded_input =
+            tensor([[[ 0.3992,  0.3078,  0.5229,  ..., -0.0600,  0.3605, -0.6795],
+                     [ 0.9091,  0.6297,  0.8109,  ..., -0.4693,  0.0366, -1.2997],
+                     [-0.2428, -0.2331,  0.8398,  ..., -0.3606, -0.1589, -0.8959],
+                     ...,
+                     [ 0.7282,  0.1269,  0.6420,  ...,  0.5207, -0.6145,  0.0968],
+                     [ 0.9042,  0.5118,  0.4795,  ...,  0.2573,  0.5738, -0.7184],
+                     [ 1.0748,  0.5826,  0.6047,  ...,  0.3374,  0.5850, -0.6084]]])
+
+
+
+
+
+7) INIZIALIZZAZIONE DEL VETTORE CHE ANDRÀ A CONTENERE GLI INDICI DELLE PAROLE TRADOTTE
+
+    target_tokens = [SOS_TOKEN] 
+
+
+
+
+
+8) CICLO PER ANDARE A RIEMPIRE target_tokens
+
+Codice:
+    for i in range(max_len):      
+        target_tensor = torch.LongTensor(target_tokens).unsqueeze(0).to(device)
+        target_mask = model.make_target_mask(target_tensor)
+        with torch.no_grad():
+            output, attention = model.decoder(target_tensor, encoded_input, target_mask, input_mask)
+        pred_token = output.argmax(2)[:,-1].item()
+        target_tokens.append(pred_token)
+        if pred_token == EOS_TOKEN:
+            break
+
+
+Spiegazione:
+
+- Il ciclo itera fino a max_len (60) o fino a quando non trova il token EOS (ultimo if).
+
+- target_tensor --> tensore che andrà a contenere gli indici delle parole tradotte (EOS escluso). Ad ogni iterazione aggiunge un elemento fino a ottenere:
+    tensor([[   1,  448,  201,   24, 1064,  673,   35]])
+
+- target_mask --> richiama il metodo make_target_mask, che rispetto a make_input_mask aggiunge due righe di codice:
+    1) target_sub_mask = torch.tril(torch.ones((target.shape[1], target.shape[1]), device = self.device)).bool() 
+        --> restituisce una matrice quadrata della dimensione di target_tensor. Prima la riempie di 1 (ones), poi mette a 0 tutti gli elementi sopra la diagonale (tril).
+    2) target_mask = target_pad_mask & target_sub_mask 
+        --> fornisce target_mask, in pratica sostituendo gli 1 con True e gli 0 con False.
+    Si ottiene quindi il seguente tensore con l'aggiunta di una riga e una colonna a ogni iterazione:
+    tensor([[[[ True, False, False, False, False, False, False],
+              [ True,  True, False, False, False, False, False],
+              [ True,  True,  True, False, False, False, False],
+              [ True,  True,  True,  True, False, False, False],
+              [ True,  True,  True,  True,  True, False, False],
+              [ True,  True,  True,  True,  True,  True, False],
+              [ True,  True,  True,  True,  True,  True,  True]]]])
+
+------------------------------------------------------------------------------------------------------------ Entrata decoder
+
+- output, attention = model.decoder(target_tensor, encoded_input, target_mask, input_mask)
+
+Si passa quindi al decoder, il cui costruttore inizializza:
+    - device;
+    - Embedding te;
+    - Embedding pe;
+    - Sequenza di layer di decoding;
+    - Layer lineare fc_out;
+    - Dropout dp;
+    - Coefficiente coefficient.
+
+Nella funzione forward:
+    - b_size = 1 --> dimensione data da shape[0] di target_tensor, che nel nostro caso contiene una frase;
+    - target_size = 7 --> dimensione data da shape[1] di target_tensor, che nel nostro caso conterrà una frase composta da 7 elementi (compreso token SOS);
+    - pos --> tensore contenente gli indici corrispondenti alle posizioni delle parole (da capire meglio repeat);
+        = tensor([[0, 1, 2, 3, 4, 5, 6]])
+    - target --> come per l'encoding, si moltiplica l'embedding te di target_tensor per coefficient, quindi si aggiunge il positional embedding calcolato a partire da pos;
+        tensor([[[-0.0530,  0.0347,  0.0727,  ...,  0.0101,  0.1479, -0.0640],
+                 [-0.7265,  0.8031, -0.2958,  ..., -0.0176,  0.3329, -1.0364],
+                 [ 0.0317,  0.2445, -0.2239,  ...,  0.4290,  0.6468,  0.3052],
+                 ...,
+                 [ 1.0197,  0.4329, -1.4262,  ...,  0.3193, -0.0065, -0.5952],
+                 [-0.9621,  0.8816, -0.0383,  ..., -0.7406, -0.2927, -0.9441],
+                 [-0.4234, -0.0207,  0.1861,  ..., -0.6516,  0.1821, -0.4151]]])
+    - target, attention --> il risultato dell'embedding precedente viene quindi dato in pasto al decoder, e dopo aver attraersato tutti i layer risulta un tensore del tipo:
+        tensor([[[ 1.6279, -2.4811, -1.5659,  ...,  3.0407,  1.2018,  1.2198],
+                 [-0.1281, -1.9938,  1.3023,  ...,  4.8588, -0.7818,  1.0976],
+                 [-1.2521, -2.3506,  1.8522,  ...,  3.4862, -2.3414,  0.3314],
+                 ...,
+                 [-0.3411, -2.2336, -0.5540,  ...,  2.8569,  3.4489,  2.3404],
+                 [-3.5303, -0.5502,  3.6859,  ...,  3.7490,  0.6631, -2.1379],
+                 [-2.4107, -4.1327,  3.3883,  ...,  0.6106,  1.1464, -2.0066]]])
+    - output --> target passa per il layer lineare fc_out, dando come risultato il tensore:
+        tensor([[[-12.8219, -12.6402,   1.8384,  ..., -10.6656,  -9.0259, -12.2283],
+                 [-12.6373, -12.8009,   3.8453,  ..., -12.8577,  -6.8864, -14.0917],
+                 [ -9.8129,  -9.5913,   0.2500,  ..., -12.6696,  -1.4999,  -9.6826],
+                 ...,
+                 [ -8.7906,  -8.9340,   1.0883,  ..., -12.4681,  -4.7371,  -8.3167],
+                 [-10.6813, -10.9261,   5.7458,  ...,  -8.3657,  -4.4224,  -9.0870],
+                 [-11.5648, -11.6305,  19.7422,  ...,  -9.1930,  -5.4221, -13.6158]]])
+
+
+In tutto questo, come per l'encoder, abbiamo detto che l'input passa per i vari layer di encoding, ciascuno caratterizzato dai seguenti componenti:
+- MultiHeadAttention;
+- LayerNorm;
+- MultiHeadAttention;
+- LayerNorm;
+- FeedForwardLayer;
+- LayerNorm;
+- Dropout.
+Questi vengono inizializzati e preparati all'applicazione nella classe DecoderLayer.
+
+------------------------------------------------------------------------------------------------------------ Uscita decoder
+
+A questo punto si ha il risultato del decoder, ripreso di seguito:
+
+- output --> tensore dalla stessa struttura di input_tensor, ma risultato del decoding. Aggiunge una riga ad ogni iterazione. Ogni riga è costituita dal numero di parole di output_lang memorizzate.
+    tensor([[[-12.8219, -12.6402,   1.8384,  ..., -10.6656,  -9.0259, -12.2283],
+             [-12.6373, -12.8009,   3.8453,  ..., -12.8577,  -6.8864, -14.0917],
+             [ -9.8129,  -9.5913,   0.2500,  ..., -12.6696,  -1.4999,  -9.6826],
+             ...,
+             [ -8.7906,  -8.9340,   1.0883,  ..., -12.4681,  -4.7371,  -8.3167],
+             [-10.6813, -10.9261,   5.7458,  ...,  -8.3657,  -4.4224,  -9.0870],
+             [-11.5648, -11.6305,  19.7422,  ...,  -9.1930,  -5.4221, -13.6158]]])
+
+- pred_token --> viene selezionato, per ogni riga di output, l'indice corrispondente al valore più alto della riga.
+    448
+    201
+    24
+    1064
+    673
+    35
+    2
+
+- target_tokens --> ad ogni iterazione aggiunge a un vettore l'indice ottenuto in pred_token.
+    [1, 448, 201, 24, 1064, 673, 35, 2]
+
+
+
+
+
+
+9) OTTENIMENTO DELL'OUTPUT FINALE
+Crea un vettore con gli elementi corrispondenti alla traduzione, comprendendo anche SOS e EOS.
+Successivamente ricava la frase finale.
+
+    target_results =
+        ['SOS', 'today', 'is', 'a', 'magnificent', 'day', '.', 'EOS']
+    
+    return ' '.join(target_results[1:-1])
+        today is a magnificent day .
