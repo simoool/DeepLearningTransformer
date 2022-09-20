@@ -12,10 +12,6 @@
     normalized_sentence = normalizeString(sentence)
     --> "oggi e una bellissima giornata ."
 
-
-
-
-
 3) TOKENIZZAZIONE --> Il modello non può essere addestrato direttamente sul testo.
 Crea un vettore con gli indici di ciascuna parola, con l'aggiunta dei token SOS, EOS e PAD per un totale di 62 elementi.
 
