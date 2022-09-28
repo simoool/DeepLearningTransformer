@@ -9,8 +9,6 @@ SOS_TOKEN = 1
 EOS_TOKEN = 2
 
 
-
-
 #https://stackoverflow.com/a/518232/2809427
 def unicodeToAscii(s):
     return ''.join(
@@ -20,7 +18,7 @@ def unicodeToAscii(s):
 
 
 
-
+# funzione di normalizzazione stringa: ossia dalla frase, tolgo accenti, apostrofi ecc...
 def normalizeString(s):
     s = unicodeToAscii(s.lower().strip())
     s = re.sub(r"([.!?])", r" \1", s)
