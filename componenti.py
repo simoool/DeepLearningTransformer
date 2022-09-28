@@ -189,15 +189,18 @@ class Transformer(nn.Module):
     def __init__(self, encoder, decoder, padding_index=0):
         super().__init__()
         
+        # associo encoder e decoder passati come input
         self.encoder = encoder
         self.decoder = decoder
         self.padding_index = padding_index
         
+    # funzione calcolo maschera di input     
     def make_input_mask(self, input):
 
         input_mask = (input != self.padding_index).unsqueeze(1).unsqueeze(2)
         return input_mask
     
+    # funzione calcola maschera target
     def make_target_mask(self, target):
 
         target_pad_mask = (target != self.padding_index).unsqueeze(1).unsqueeze(2)
@@ -206,13 +209,14 @@ class Transformer(nn.Module):
         return target_mask
 
     def forward(self, input, target):   
+        # calcolo maschera di input
         input_mask = self.make_input_mask(input)
         target_mask = self.make_target_mask(target)
 
-        #encoder feed through
+        #encoder eseguito
         encoded_input = self.encoder(input, input_mask)
 
-        #decoder feed_through
+        #decoder eseguito
         output, attention = self.decoder(target, encoded_input, target_mask, input_mask)
 
         return output, attention
