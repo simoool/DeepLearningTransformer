@@ -4,6 +4,8 @@
 import torch 
 import torch.nn as nn
 
+# Oggetto MultiHeadAttentionLayer
+
 class MultiHeadAttentionLayer(nn.Module):
     def __init__(self, hidden_size, n_heads, dropout):
         super().__init__()
