@@ -40,7 +40,4 @@ MODIFICHE:
 
 - traduci.py
     Sostituito "frae_tokenizzata" con "frase_tokenizzata" (errore di scrittura)
-
-- directory "data"
-    Sostituito i dataset con quelli completi
     
