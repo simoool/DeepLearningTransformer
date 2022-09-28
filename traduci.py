@@ -11,6 +11,7 @@ from componenti import Transformer, Encoder, Decoder
 from dictionary import Dictionary
 from funzioni import *
 
+# token che indica inizio della stringa: SOS= Start of String
 SOS_TOKEN = 1
 
 # Carico i dizionari che durante il train erano stati creati e serializzati
@@ -22,6 +23,8 @@ def carica_vocabolario(path):
 
 def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     
+    # model.eval disattiva alcune parti che vengono usate solo per il training 
+    # come per esempio Dropouts Layers, BatchNorm Layers
     model.eval()
 
     # Normalizzazione la frase 
