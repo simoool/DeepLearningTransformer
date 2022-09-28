@@ -43,6 +43,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
         encoded_input = model.encoder(frase_tensore, input_mask)
 
     # Token che andrà a contenere gli indici delle parole tradotte
+    # il primo è sempre il token di inizio stringa: SOS
     token_risposta = [SOS_TOKEN]
 
     # Ciclo for per andare a riempire token_risposta, passando attraverso il decoder
@@ -65,6 +66,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     for i in token_risposta:
         vettore_traduzione.append(vocab_eng.index2word[i])
 
+    # restituisco la frase tradotta e il livello di attention
     return ' '.join(vettore_traduzione[1:-1]), attention
 
 
@@ -125,7 +127,10 @@ def main():
     transformer = Transformer(encoder, decoder)
     transformer.load_state_dict(torch.load(transformer_location + 'transformer_model.pt'))
 
+    # invocazione metodo traduci frase per avviare la traduzione della frase letta in ingresso
     traduzione, attention = traduci_frase(frase_italiano, input_lang_dic, output_lang_dic, transformer, MAX_LENGTH)
+    
+    # stampo risultato: FRASE ITALIANO E POI CORRISPONDENTE TRADUZIONE
     print("Frase italiano" + ': ' + frase_italiano)
     print("Traduzione" + ': ' + traduzione)
 
