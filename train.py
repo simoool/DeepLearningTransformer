@@ -43,6 +43,9 @@ class Trainer():
             self.dizionario_ing.add_sentence(frase)
 
         # Serializza entrambi i dizionari
+        # Serializzazione realizzata con pickle e comando dump
+        # highest protocol è valore costante, inserito obbligatoriamente nel comando dump
+
         with open('modelli_salvati/' + self.dizionario_ita.name + '2' + self.dizionario_ing.name + '/input_dic.pkl', 'wb') as f:
             pickle.dump(self.dizionario_ita, f, pickle.HIGHEST_PROTOCOL)
         with open('modelli_salvati/' + self.dizionario_ita.name + '2' + self.dizionario_ing.name + '/output_dic.pkl', 'wb') as f:
@@ -72,7 +75,6 @@ class Trainer():
         # Definizione della funzione di loss e dell'optimizer, utilizzando rispettivamente Cross-Entropy e Adam
         self.loss_func = nn.CrossEntropyLoss(ignore_index=PAD_TOKEN)
         self.optimizer = optim.Adam(self.transformer.parameters(), lr=lr)
-
 
 
     def train(self, epochs, saved_model_directory):
