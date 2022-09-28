@@ -1,3 +1,6 @@
+# modulo che contiene tutti le "componenti fondamentali" che costituiscono il Transformer
+
+# import delle librerie neccessarie
 import torch 
 import torch.nn as nn
 
