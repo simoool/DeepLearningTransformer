@@ -22,7 +22,9 @@ class Trainer():
         if hasattr(model, 'weight') and model.weight.dim() > 1:
             nn.init.xavier_uniform_(model.weight.data)
 
-
+    # inizializzazione pesi avviene con una xavier uniform, funzione fornita da torch.
+    # inizializza i pesi con valori assunti tra -a ed a, dove a è calcolato come segue:
+    # a= gain* 6/((fan_in+fan_out)^1/2)
 
     # Inizializzazione dell'oggetto transformer
     def __init__(self,data_directory, MAX_LENGTH, MAX_FILE_SIZE, batch_size, lr=0.0005, hidden_size=256, encoder_layers=3, decoder_layers=3,
@@ -77,6 +79,7 @@ class Trainer():
         start_time = time.time()
 
         for epoch in range(epochs):
+
             # Mescola le batch per prevenire l'overfitting
             shuffle(self.data_loader)
 
