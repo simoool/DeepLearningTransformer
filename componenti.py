@@ -32,10 +32,12 @@ class MultiHeadAttentionLayer(nn.Module):
     def forward(self, query, key, value, mask=None):
         b_size = query.shape[0]
    
+        # calcolo del Q,V,K
         query_output = self.fc_query(query)
         key_output = self.fc_key(key)
         value_output = self.fc_value(value)
      
+        # riformulazione delle dimensioni matriciali di Q,V,K
         query_output = query_output.view(b_size, -1, self.n_heads, self.head_size).permute(0, 2, 1, 3)
         key_output = key_output.view(b_size, -1, self.n_heads, self.head_size).permute(0, 2, 1, 3)
         value_output = value_output.view(b_size, -1, self.n_heads, self.head_size).permute(0, 2, 1, 3)
@@ -44,6 +46,7 @@ class MultiHeadAttentionLayer(nn.Module):
         if mask is not None:
             energy = energy.masked_fill(mask == 0, -1e10)
         
+
         attention = torch.softmax(energy, dim = -1)    
         output = torch.matmul(self.dp(attention), value_output)
         output = output.permute(0, 2, 1, 3).contiguous()
@@ -55,6 +58,8 @@ class FeedForwardLayer(nn.Module):
     def __init__(self, hidden_size, ff_size, dropout):
         super().__init__()
 
+        # creazione di un macro layer sequenziale formato da un linear,una reLu, un dropout e un'altra linear,
+        # come espresso dal paper di descrizione della struttura del Transformer
         self.ff_layer = nn.Sequential(
             nn.Linear(hidden_size, ff_size),
             nn.ReLU(),
