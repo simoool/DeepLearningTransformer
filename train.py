@@ -130,8 +130,6 @@ class Trainer():
         print('Train terminato!')
 
 
-
-
 def main():
 
     # Crea l'oggetto parser di tipo ArgumentParser a cui associare gli argomenti da utilizzare
@@ -183,6 +181,7 @@ def main():
                             encoder_heads, decoder_heads, encoder_ff_size, decoder_ff_size, encoder_dropout, decoder_dropout)
 
     # Viene chiamato il metodo train sul transformer appena creato e inizializzato
+    # verrà avviata la fase di training
     transformer.train(epoche, percorso)
 
 
