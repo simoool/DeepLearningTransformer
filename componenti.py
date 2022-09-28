@@ -12,17 +12,21 @@ class MultiHeadAttentionLayer(nn.Module):
         
         assert hidden_size % n_heads == 0
         
+        # assegnazione parametri del multiheadattention con parametri ricevuti in ingresso
         self.hidden_size = hidden_size
         self.n_heads = n_heads
         self.head_size = hidden_size // n_heads
         
+        # creazione di Q,V,K,out come funzioni lineari
         self.fc_query = nn.Linear(hidden_size, hidden_size)
         self.fc_key = nn.Linear(hidden_size, hidden_size)
         self.fc_value = nn.Linear(hidden_size, hidden_size)
         self.fc_out = nn.Linear(hidden_size, hidden_size)
     
+        # definizione del dropout per le operazioni future
         self.dp = nn.Dropout(dropout)
         
+        # creazione del coeff.
         self.coefficient = torch.sqrt(torch.FloatTensor([self.head_size]))
         
     def forward(self, query, key, value, mask=None):
