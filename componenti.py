@@ -76,6 +76,7 @@ class EncoderLayer(nn.Module):
     def __init__(self, hidden_size, n_heads, ff_size,  dropout):
         super().__init__()
         
+        # calcolo componenti EncoderLayer
         self.self_atten = MultiHeadAttentionLayer(hidden_size, n_heads, dropout)
         self.self_atten_norm = nn.LayerNorm(hidden_size)
         self.ff_layer = FeedForwardLayer(hidden_size, ff_size, dropout)
@@ -86,7 +87,10 @@ class EncoderLayer(nn.Module):
         #self attention
         atten_result, _ = self.self_atten(input, input, input, input_mask)
         
+        # normalizzazione della self attention
         atten_norm = self.self_atten_norm(input + self.dp(atten_result))
+
+        # calcolo il feedforward di attention normalizzata
         ff_result = self.ff_layer(atten_norm)
         
         output = self.ff_layer_norm(atten_norm + self.dp(ff_result))
@@ -96,9 +100,11 @@ class Encoder(nn.Module):
     def __init__(self, input_size, hidden_size, n_layers, n_heads, ff_size,dropout, MAX_LENGTH=100):
         super().__init__()
         
+        # calcolo embedding 
         self.te = nn.Embedding(input_size, hidden_size)
         self.pe = nn.Embedding(MAX_LENGTH, hidden_size)
         
+        # creo sequenza di encoderlayer, tanti encoderlayer quanti forniti come iperparametro
         encoding_layers = []
         for _ in range(n_layers):
             encoding_layers.append(EncoderLayer(hidden_size, n_heads, ff_size, dropout))
