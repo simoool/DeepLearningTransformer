@@ -83,10 +83,14 @@ class Trainer():
             # Mescola le batch per prevenire l'overfitting
             shuffle(self.data_loader)
 
+            # determina il momento di inizio delle operazioni
             start_time = time.time()
+
+            # definizione train loss, inizialmente=0
             train_loss = 0
 
             for input, target in self.data_loader:
+
                 # Imposta il gradiente a zero, perchè a ogni backpropagation vengono si somma il gradiente corrente con i precedenti
                 self.optimizer.zero_grad()
 
@@ -118,6 +122,7 @@ class Trainer():
             torch.save(self.transformer.state_dict(), saved_model_directory + self.dizionario_ita.name +
             '2' + self.dizionario_ing.name + '/transformer_model_{}.pt'.format(epoch))
 
+            # stampo info utili
             print('Epoca: {}  -->  Tempo trascorso: {}s  -  Tempo stimato rimanente: {}s.'.format(epoch, end_time, (epochs-epoch)*end_time))
             print('\tLoss: {:.4f}\n'.format(train_loss))
         print('Train terminato!')
