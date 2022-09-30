@@ -13,6 +13,9 @@ COMMENTI:
 - traduci.py
     Aggiunti commenti di spiegazione a tutto il file
 
+- componenti.py
+    Aggiunti commenti di spiegazione a tutto il file
+
 
 
 
@@ -39,5 +42,10 @@ MODIFICHE:
     La dimensione di seq_length era sempre uguale a batch_size, quindi ho riscritto in modo semplificato
 
 - traduci.py
-    Sostituito "frae_tokenizzata" con "frase_tokenizzata" (errore di scrittura)
-    
+    Sostituito "frae_tokenizzata" con "frase_tokenizzata" (errore di scrittura)  
+
+- componenti.py
+    Sostituito "energy" con "score"
+
+- traduci.py, componenti.py
+    Rimosso tutte le attention dagli output, return ecc. perchè inutili

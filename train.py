@@ -17,14 +17,12 @@ EOS_TOKEN = 2
 
 class Trainer():
 
-    # Inizializza i pesi con una distribuzione uniforme di tipo xavier_uniform, controllando che l'oggetto transformer abbia l'attributo "weight" di dimensione > 1.
+    # L'inizializzazione dei pesi avviene con una xavier uniform. Inizializza i pesi con valori assunti tra -a ed a, dove a è calcolato come segue:
+    # a = gain * 6/((fan_in+fan_out)^1/2)
     def inizializza_pesi(self, model):
         if hasattr(model, 'weight') and model.weight.dim() > 1:
             nn.init.xavier_uniform_(model.weight.data)
 
-    # inizializzazione pesi avviene con una xavier uniform, funzione fornita da torch.
-    # inizializza i pesi con valori assunti tra -a ed a, dove a è calcolato come segue:
-    # a= gain* 6/((fan_in+fan_out)^1/2)
 
     # Inizializzazione dell'oggetto transformer
     def __init__(self,data_directory, MAX_LENGTH, MAX_FILE_SIZE, batch_size, lr=0.0005, hidden_size=256, encoder_layers=3, decoder_layers=3,
@@ -42,10 +40,8 @@ class Trainer():
         for frase in self.lista_frasi_ing:
             self.dizionario_ing.add_sentence(frase)
 
-        # Serializza entrambi i dizionari
-        # Serializzazione realizzata con pickle e comando dump
-        # highest protocol è valore costante, inserito obbligatoriamente nel comando dump
-
+        # Serializza entrambi i dizionari tramite il module pickle
+        # highest protocol è un valore costante, inserito obbligatoriamente nel comando dump
         with open('modelli_salvati/' + self.dizionario_ita.name + '2' + self.dizionario_ing.name + '/input_dic.pkl', 'wb') as f:
             pickle.dump(self.dizionario_ita, f, pickle.HIGHEST_PROTOCOL)
         with open('modelli_salvati/' + self.dizionario_ita.name + '2' + self.dizionario_ing.name + '/output_dic.pkl', 'wb') as f:
@@ -77,6 +73,7 @@ class Trainer():
         self.optimizer = optim.Adam(self.transformer.parameters(), lr=lr)
 
 
+
     def train(self, epochs, saved_model_directory):
         start_time = time.time()
 
@@ -85,14 +82,12 @@ class Trainer():
             # Mescola le batch per prevenire l'overfitting
             shuffle(self.data_loader)
 
-            # determina il momento di inizio delle operazioni
+            # Determina il momento di inizio delle operazioni
             start_time = time.time()
 
-            # definizione train loss, inizialmente=0
             train_loss = 0
 
             for input, target in self.data_loader:
-
                 # Imposta il gradiente a zero, perchè a ogni backpropagation vengono si somma il gradiente corrente con i precedenti
                 self.optimizer.zero_grad()
 
@@ -124,10 +119,12 @@ class Trainer():
             torch.save(self.transformer.state_dict(), saved_model_directory + self.dizionario_ita.name +
             '2' + self.dizionario_ing.name + '/transformer_model_{}.pt'.format(epoch))
 
-            # stampo info utili
+            # Stampo le informazioni relative a ogni epoca
             print('Epoca: {}  -->  Tempo trascorso: {}s  -  Tempo stimato rimanente: {}s.'.format(epoch, end_time, (epochs-epoch)*end_time))
             print('\tLoss: {:.4f}\n'.format(train_loss))
         print('Train terminato!')
+
+
 
 
 def main():
@@ -181,7 +178,6 @@ def main():
                             encoder_heads, decoder_heads, encoder_ff_size, decoder_ff_size, encoder_dropout, decoder_dropout)
 
     # Viene chiamato il metodo train sul transformer appena creato e inizializzato
-    # verrà avviata la fase di training
     transformer.train(epoche, percorso)
 
 

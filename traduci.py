@@ -1,17 +1,17 @@
 import torch
 
-# import per ricevere eventuali argomenti di input
+# Import per ricevere eventuali argomenti di input
 import argparse
 
-# per caricamento e gestione dizionari vari
+# Per caricamento e gestione dizionari
 import pickle
 
-# import da altri moduli esterni
+# Import da altri moduli esterni
 from componenti import Transformer, Encoder, Decoder
 from dictionary import Dictionary
 from funzioni import *
 
-# token che indica inizio della stringa: SOS= Start of String
+# Token che indica inizio della stringa: SOS= Start of String
 SOS_TOKEN = 1
 
 # Carico i dizionari che durante il train erano stati creati e serializzati
@@ -23,11 +23,10 @@ def carica_vocabolario(path):
 
 def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     
-    # model.eval disattiva alcune parti che vengono usate solo per il training 
-    # come per esempio Dropouts Layers, BatchNorm Layers
+    # model.eval disattiva alcune parti che vengono usate solo per il train, come Dropout Layers, BatchNorm Layers
     model.eval()
 
-    # Normalizzazione la frase 
+    # Normalizzazione della frase 
     frase_normalizzata = normalizeString(frase_da_tradurre)
     
     # Tokenizzazione della frase normalizzata
@@ -42,8 +41,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     with torch.no_grad():
         encoded_input = model.encoder(frase_tensore, input_mask)
 
-    # Token che andrà a contenere gli indici delle parole tradotte
-    # il primo è sempre il token di inizio stringa: SOS
+    # Token che andrà a contenere gli indici delle parole tradotte (il primo è sempre SOS)
     token_risposta = [SOS_TOKEN]
 
     # Ciclo for per andare a riempire token_risposta, passando attraverso il decoder
@@ -52,7 +50,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
         target_mask = model.make_target_mask(tensore_risposta)
     
         with torch.no_grad():
-            output, attention = model.decoder(tensore_risposta, encoded_input, target_mask, input_mask)
+            output = model.decoder(tensore_risposta, encoded_input, target_mask, input_mask)
         
         pred_token = output.argmax(2)[:,-1].item()
         token_risposta.append(pred_token)
@@ -66,8 +64,8 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     for i in token_risposta:
         vettore_traduzione.append(vocab_eng.index2word[i])
 
-    # restituisco la frase tradotta e il livello di attention
-    return ' '.join(vettore_traduzione[1:-1]), attention
+    # Restituisco la frase tradotta
+    return ' '.join(vettore_traduzione[1:-1])
 
 
 
@@ -127,10 +125,10 @@ def main():
     transformer = Transformer(encoder, decoder)
     transformer.load_state_dict(torch.load(transformer_location + 'transformer_model.pt'))
 
-    # invocazione metodo traduci frase per avviare la traduzione della frase letta in ingresso
-    traduzione, attention = traduci_frase(frase_italiano, input_lang_dic, output_lang_dic, transformer, MAX_LENGTH)
-    
-    # stampo risultato: FRASE ITALIANO E POI CORRISPONDENTE TRADUZIONE
+    # Invocazione metodo traduci_frase per avviare la traduzione della frase data in ingresso
+    traduzione = traduci_frase(frase_italiano, input_lang_dic, output_lang_dic, transformer, MAX_LENGTH)
+
+    # Stampo l'output finale
     print("Frase italiano" + ': ' + frase_italiano)
     print("Traduzione" + ': ' + traduzione)
 
