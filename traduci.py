@@ -8,7 +8,6 @@ import pickle
 
 # Import da altri moduli esterni
 from componenti import Transformer, Encoder, Decoder
-from dictionary import Dictionary
 from funzioni import *
 
 # Token che indica inizio della stringa: SOS= Start of String
@@ -77,18 +76,18 @@ def main():
 
     parser.add_argument('--frase', type=str, default='Oggi è una bellissima giornata', help='Frase da tradurre')
 
-    parser.add_argument('--MAX_LENGTH', type=int, default=60, help='numero max di tokens')
-    parser.add_argument('--hidden_size', type=int, default=256, help='number of hidden layers in transformer')
-    parser.add_argument('--encoder_layers', type=int, default=3, help='number of encoder layers')
-    parser.add_argument('--decoder_layers', type=int, default=3, help='number of decoder layers')
-    parser.add_argument('--encoder_heads', type=int, default=8, help='number of encoder heads')
-    parser.add_argument('--decoder_heads', type=int, default=8, help='number of decoder heads')
-    parser.add_argument('--encoder_ff_size', type=int, default=512, help='fully connected input size for encoder')
-    parser.add_argument('--decoder_ff_size', type=int, default=512, help='fully connected input size for decoder')
-    parser.add_argument('--encoder_dropout', type=float, default=0.1, help='dropout for encoder feed forward')
-    parser.add_argument('--decoder_dropout', type=float, default=0.1, help='dropout for decoder feed forward')
+    parser.add_argument('--MAX_LENGTH', type=int, default=60, help='Massimo numero di parole nella frase di input')
+    parser.add_argument('--hidden_size', type=int, default=256, help='Numero di hidden layers')
+    parser.add_argument('--encoder_layers', type=int, default=3, help='Numero di encoder layers')
+    parser.add_argument('--decoder_layers', type=int, default=3, help='Numero di decoder layers')
+    parser.add_argument('--encoder_heads', type=int, default=8, help='Numero di encoder heads')
+    parser.add_argument('--decoder_heads', type=int, default=8, help='Numero di decoder heads')
+    parser.add_argument('--encoder_ff_size', type=int, default=512, help='Dimensione della rete FF Encoder')
+    parser.add_argument('--decoder_ff_size', type=int, default=512, help='Dimensione della rete FF Decoder')
+    parser.add_argument('--encoder_dropout', type=float, default=0.1, help='Dropout Encoder')
+    parser.add_argument('--decoder_dropout', type=float, default=0.1, help='Dropout Decoder')
 
-    parser.add_argument('--percorso_file', type=str, default='modelli_salvati/', help='percorso dove salvare i dati')
+    parser.add_argument('--percorso_file', type=str, default='modelli_salvati/', help='Cartella in cui salvare il modello')
   
     # Assegnazione vera e propria dei parametri
     args = parser.parse_args()
@@ -129,8 +128,8 @@ def main():
     traduzione = traduci_frase(frase_italiano, input_lang_dic, output_lang_dic, transformer, MAX_LENGTH)
 
     # Stampo l'output finale
-    print("Frase italiano" + ': ' + frase_italiano)
-    print("Traduzione" + ': ' + traduzione)
+    print("Frase italiano" + ' --> ' + frase_italiano)
+    print("Traduzione" + ' --> ' + traduzione)
 
 
 

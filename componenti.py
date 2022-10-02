@@ -113,7 +113,7 @@ class EncoderLayer(nn.Module):
 class Encoder(nn.Module):
 
     # Inizializzazione dei layer di encoding
-    def __init__(self, input_size, hidden_size, n_layers, n_heads, ff_size,dropout, MAX_LENGTH=100):
+    def __init__(self, input_size, hidden_size, n_layers, n_heads, ff_size, dropout, MAX_LENGTH=100):
         super().__init__()
         
         self.te = nn.Embedding(input_size, hidden_size)

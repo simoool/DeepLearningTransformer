@@ -47,5 +47,5 @@ MODIFICHE:
 - componenti.py
     Sostituito "energy" con "score"
 
-- traduci.py, componenti.py
+- traduci.py, componenti.py, train.py
     Rimosso tutte le attention dagli output, return ecc. perchè inutili

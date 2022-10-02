@@ -25,7 +25,7 @@ class Trainer():
 
 
     # Inizializzazione dell'oggetto transformer
-    def __init__(self,data_directory, MAX_LENGTH, MAX_FILE_SIZE, batch_size, lr=0.0005, hidden_size=256, encoder_layers=3, decoder_layers=3,
+    def __init__(self, data_directory, MAX_LENGTH, MAX_FILE_SIZE, batch_size, lr=0.0005, hidden_size=256, encoder_layers=3, decoder_layers=3,
                  encoder_heads=8, decoder_heads=8, encoder_ff_size=512, decoder_ff_size=512, encoder_dropout=0.1, decoder_dropout=0.1):
 
         self.MAX_LENGTH = MAX_LENGTH
@@ -88,11 +88,11 @@ class Trainer():
             train_loss = 0
 
             for input, target in self.data_loader:
-                # Imposta il gradiente a zero, perchè a ogni backpropagation vengono si somma il gradiente corrente con i precedenti
+                # Imposta il gradiente a zero, perchè a ogni backpropagation si somma il gradiente corrente con i precedenti
                 self.optimizer.zero_grad()
 
                 # Ottiene l'output e la sua dimensione passando attraverso il transformer
-                output, _ = self.transformer(input, target[:,:-1])
+                output = self.transformer(input, target[:,:-1])
                 output_dim = output.shape[-1]
 
                 # Esegue una flatten di output e di target, togliendo da quest'ultimo il token SOS
@@ -130,26 +130,26 @@ class Trainer():
 def main():
 
     # Crea l'oggetto parser di tipo ArgumentParser a cui associare gli argomenti da utilizzare
-    parser = argparse.ArgumentParser(description='Hyperparameters for training Transformer')
+    parser = argparse.ArgumentParser(description='Iperparametri per il train del Transformer')
 
     # Aggiunta degli argomenti (iperparametri) e delle directory
-    parser.add_argument('--MAX_LENGTH', type=int, default=60, help='max number of tokens in input')
-    parser.add_argument('--MAX_FILE_SIZE', type=int, default=1000, help='max number of lines to read from files') #100000
-    parser.add_argument('--batch_size', type=int, default=128, help='size of batches passed through networks at each step')
-    parser.add_argument('--lr', type=float, default=0.0005, help='learning rate of models')
-    parser.add_argument('--hidden_size', type=int, default=256, help='number of hidden layers in transformer')
-    parser.add_argument('--encoder_layers', type=int, default=3, help='number of encoder layers')
-    parser.add_argument('--decoder_layers', type=int, default=3, help='number of decoder layers')
-    parser.add_argument('--encoder_heads', type=int, default=8, help='number of encoder heads')
-    parser.add_argument('--decoder_heads', type=int, default=8, help='number of decoder heads')
-    parser.add_argument('--encoder_ff_size', type=int, default=512, help='fully connected input size for encoder')
-    parser.add_argument('--decoder_ff_size', type=int, default=512, help='fully connected input size for decoder')
-    parser.add_argument('--encoder_dropout', type=float, default=0.1, help='dropout for encoder feed forward')
-    parser.add_argument('--decoder_dropout', type=float, default=0.1, help='dropout for decoder feed forward')
-    parser.add_argument('--epoche', type=int, default=10, help='number of iterations of dataset through network for training')
+    parser.add_argument('--MAX_LENGTH', type=int, default=60, help='Massimo numero di parole nella frase di input')
+    parser.add_argument('--MAX_FILE_SIZE', type=int, default=1000, help='Massimo numero di righe lette dal dataset') #100000
+    parser.add_argument('--batch_size', type=int, default=128, help='Dimensione delle batch che passano per la rete a ogni iterazione')
+    parser.add_argument('--lr', type=float, default=0.0005, help='Learning rate')
+    parser.add_argument('--hidden_size', type=int, default=256, help='Numero di hidden layers')
+    parser.add_argument('--encoder_layers', type=int, default=3, help='Numero di encoder layers')
+    parser.add_argument('--decoder_layers', type=int, default=3, help='Numero di decoder layers')
+    parser.add_argument('--encoder_heads', type=int, default=8, help='Numero di encoder heads')
+    parser.add_argument('--decoder_heads', type=int, default=8, help='Numero di decoder heads')
+    parser.add_argument('--encoder_ff_size', type=int, default=512, help='Dimensione della rete FF Encoder')
+    parser.add_argument('--decoder_ff_size', type=int, default=512, help='Dimensione della rete FF Decoder')
+    parser.add_argument('--encoder_dropout', type=float, default=0.1, help='Dropout Encoder')
+    parser.add_argument('--decoder_dropout', type=float, default=0.1, help='Dropout Decoder')
+    parser.add_argument('--epoche', type=int, default=10, help='Numero di epoche')
     
-    parser.add_argument('--data_directory', type=str, default='data', help='data directory')
-    parser.add_argument('--saved_model_directory', type=str, default='modelli_salvati/', help='data directory')
+    parser.add_argument('--data_directory', type=str, default='data', help='Cartella contenente i dataset')
+    parser.add_argument('--saved_model_directory', type=str, default='modelli_salvati/', help='Cartella in cui salvare il modello')
 
     # Assegnazione vera e propria dei parametri
     args = parser.parse_args()
