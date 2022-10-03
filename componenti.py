@@ -215,7 +215,9 @@ class Decoder(nn.Module):
         for layer in self.decode_sequence:
             target = layer(target, encoded_input, target_mask, input_mask)
 
-        output = self.fc_out(target)
+        # Il layer lineare restituisce un tensore in cui ogni vettore ha dimensione pari a quella del vocabolario in inglese
+        output_lin = self.fc_out(target)
+        output = torch.softmax(output_lin, dim=-1)
 
         return output
 

@@ -134,7 +134,7 @@ def main():
 
     # Aggiunta degli argomenti (iperparametri) e delle directory
     parser.add_argument('--MAX_LENGTH', type=int, default=60, help='Massimo numero di parole nella frase di input')
-    parser.add_argument('--MAX_FILE_SIZE', type=int, default=1000, help='Massimo numero di righe lette dal dataset') #100000
+    parser.add_argument('--MAX_FILE_SIZE', type=int, default=2000, help='Massimo numero di righe lette dal dataset')
     parser.add_argument('--batch_size', type=int, default=128, help='Dimensione delle batch che passano per la rete a ogni iterazione')
     parser.add_argument('--lr', type=float, default=0.0005, help='Learning rate')
     parser.add_argument('--hidden_size', type=int, default=256, help='Numero di hidden layers')

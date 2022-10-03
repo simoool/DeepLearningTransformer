@@ -128,8 +128,10 @@ def main():
     traduzione = traduci_frase(frase_italiano, input_lang_dic, output_lang_dic, transformer, MAX_LENGTH)
 
     # Stampo l'output finale
+    print()
     print("Frase italiano" + ' --> ' + frase_italiano)
     print("Traduzione" + ' --> ' + traduzione)
+    print()
 
 
 
