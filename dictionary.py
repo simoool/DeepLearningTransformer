@@ -3,8 +3,6 @@ SOS_TOKEN = 1
 EOS_TOKEN = 2
 
 
-# Dalla documentazione pytorch
-
 class Dictionary:
 
     # Inizializza l'oggetto dizionario

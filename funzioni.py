@@ -20,7 +20,6 @@ def unicodeToAscii(s):
 
 
 
-
 def normalizeString(s):
     s = unicodeToAscii(s.lower().strip())
     s = re.sub(r"([.!?])", r" \1", s)
@@ -89,13 +88,13 @@ def tokenize(frase, vocabolario, MAX_LENGTH=60):
 
 
 # Partendo dalle liste di frasi tokenizzate, costruisce delle batch prendendone batch_size a ogni iterazione.
-# Successivamente, partendo dalle batch, costruisce i rispettivi tensori. Questi verranno restituiti nella lista (a coppie) data_loader
-def load_batches(lingua_italiano, lingua_inglese, batch_size):
-    data_loader = []
+# Successivamente, partendo dalle batch, costruisce i rispettivi tensori. Questi verranno restituiti nella lista (a coppie) batches
+def crea_batch(lingua_italiano, lingua_inglese, batch_size):
+    batches = []
     for i in range(0, len(lingua_italiano), batch_size):
         input_batch = lingua_italiano[i:i+batch_size][:]
         target_batch = lingua_inglese[i:i+batch_size][:]
         input_tensor = torch.LongTensor(input_batch)
         target_tensor = torch.LongTensor(target_batch)
-        data_loader.append([input_tensor, target_tensor])
-    return data_loader
+        batches.append([input_tensor, target_tensor])
+    return batches

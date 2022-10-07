@@ -34,8 +34,6 @@ class MultiHeadAttentionLayer(nn.Module):
         query_output = self.fc_query(query)
         key_output = self.fc_key(key)
         value_output = self.fc_value(value)
-        #self.n_heads=8 
-        #self.head_size=32
 
         # Riformulazione delle dimensioni matriciali di Q,V,K
         query_output = query_output.view(b_size, -1, self.n_heads, self.head_size).permute(0, 2, 1, 3)
@@ -55,9 +53,10 @@ class MultiHeadAttentionLayer(nn.Module):
         output = torch.matmul(self.dp(attention), value_output)
 
         # Eseguo la concatenazione dei prodotti ottenuti, faccio passare il risultato attraverso un layer lineare e restituisco l'output della Multi-Head Attention
-        output = output.permute(0, 2, 1, 3).contiguous() #contiguous serve? i risultati sono gli stessi anche senza
+        output = output.permute(0, 2, 1, 3).contiguous()
         output = output.view(b_size, -1, self.hidden_size)  
 
+        # Linearizzazione
         output = self.fc_out(output)
 
         return output
@@ -141,9 +140,8 @@ class Encoder(nn.Module):
         input_size = input.shape[1]
         
         # Embedding + Positional Encoding dell'input
-        #pos = torch.arange(0, input_size).unsqueeze(0).repeat(b_size, 1)   #######################
         pos = torch.arange(0, input_size).unsqueeze(0)
-        input = self.dp((self.te(input) * self.coefficient) + self.pe(pos)) # Dropout non necessario? il risultato è lo stesso
+        input = self.dp((self.te(input) * self.coefficient) + self.pe(pos))
 
         # Passaggio per gli n_layers di encoding
         for layer in self.encode_sequence:

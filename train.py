@@ -54,7 +54,7 @@ class Trainer():
         self.batch_size = batch_size
 
         # Assegnazione della lista contenente le coppie di tensori, costruiti partendo dalle frasi tokenizzate
-        self.data_loader = load_batches(self.frasi_ita_token, self.frasi_ing_token, self.batch_size)
+        self.batches = crea_batch(self.frasi_ita_token, self.frasi_ing_token, self.batch_size)
 
         # Numero di parole diverse in ognuno dei due dizionari
         input_size = self.dizionario_ita.n_count
@@ -80,14 +80,14 @@ class Trainer():
         for epoch in range(epochs):
 
             # Mescola le batch per prevenire l'overfitting
-            shuffle(self.data_loader)
+            shuffle(self.batches)
 
             # Determina il momento di inizio delle operazioni
             start_time = time.time()
 
             train_loss = 0
 
-            for input, target in self.data_loader:
+            for input, target in self.batches:
                 # Imposta il gradiente a zero, perchè a ogni backpropagation si somma il gradiente corrente con i precedenti
                 self.optimizer.zero_grad()
 
@@ -96,8 +96,6 @@ class Trainer():
                 output_dim = output.shape[-1]
 
                 # Esegue una flatten di output e di target, togliendo da quest'ultimo il token SOS
-                # view(-1, output_dim) --> reshape del tensore con n° righe indefinito, n° colonne = output_dim
-                # view(-1) --> reshape del tensore su un unica riga
                 output = output.contiguous().view(-1, output_dim)
                 target = target[:,1:].contiguous().view(-1)
 
@@ -113,10 +111,11 @@ class Trainer():
                 train_loss += loss.item()
                 
             # Calcola la loss per l'epoca
-            train_loss /= len(self.data_loader)
+            train_loss /= len(self.batches)
 
             end_time = int(time.time() - start_time)
 
+            # Salva il modello relativo a ogni epoca
             if (epoch+1 == epochs):
                 torch.save(self.transformer.state_dict(), saved_model_directory + self.dizionario_ita.name +
                 '2' + self.dizionario_ing.name + '/transformer_model.pt'.format(epoch))
@@ -124,7 +123,7 @@ class Trainer():
                 torch.save(self.transformer.state_dict(), saved_model_directory + self.dizionario_ita.name +
                 '2' + self.dizionario_ing.name + '/transformer_model_{}.pt'.format(epoch))
 
-            # Stampo le informazioni relative a ogni epoca
+            # Stampa le informazioni relative a ogni epoca
             print('Epoca: {}  -->  Tempo trascorso: {}s  -  Tempo stimato rimanente: {}s.'.format(epoch, end_time, (epochs-epoch)*end_time))
             print('\tLoss: {:.4f}\n'.format(train_loss))
         print('Train terminato!')

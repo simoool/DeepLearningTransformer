@@ -24,7 +24,7 @@ def carica_vocabolario(path):
 
 def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     
-    # model.eval disattiva alcune parti che vengono usate solo per il train, come Dropout Layers, BatchNorm Layers
+    # Disattiva alcune parti che vengono usate solo per il train, come Dropout Layers, BatchNorm Layers
     model.eval()
 
     # Normalizzazione della frase 
@@ -39,6 +39,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     # Calcola la input mask
     input_mask = model.make_input_mask(frase_tensore)
     
+    # Passaggio per l'Encoder
     with torch.no_grad():
         encoded_input = model.encoder(frase_tensore, input_mask)
 
@@ -50,9 +51,11 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
         tensore_risposta = torch.LongTensor(token_risposta).unsqueeze(0)
         target_mask = model.make_target_mask(tensore_risposta)
     
+        # Passaggio per il Decoder
         with torch.no_grad():
             output = model.decoder(tensore_risposta, encoded_input, target_mask, input_mask)
-        
+
+        # Ottenimento del token corretto per la traduzione
         pred_token = output.argmax(2)[:,-1].item()
         token_risposta.append(pred_token)
         
