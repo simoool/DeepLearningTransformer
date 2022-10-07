@@ -1,3 +1,4 @@
+from base64 import encode
 import torch
 
 # Import per ricevere eventuali argomenti di input
@@ -9,8 +10,9 @@ import pickle
 # Import da altri moduli esterni
 from componenti import Transformer, Encoder, Decoder
 from funzioni import *
+from train import Trainer
 
-# Token che indica inizio della stringa: SOS= Start of String
+# Token che indica inizio della stringa: SOS = Start of String
 SOS_TOKEN = 1
 
 # Carico i dizionari che durante il train erano stati creati e serializzati

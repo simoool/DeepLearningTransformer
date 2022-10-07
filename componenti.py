@@ -16,7 +16,7 @@ class MultiHeadAttentionLayer(nn.Module):
         self.n_heads = n_heads
         self.head_size = hidden_size // n_heads
         
-        # Creazione di Q,V,K,out come funzioni lineari
+        # Creazione di Q,V,K tramite trasformazioni lineari
         self.fc_query = nn.Linear(hidden_size, hidden_size)
         self.fc_key = nn.Linear(hidden_size, hidden_size)
         self.fc_value = nn.Linear(hidden_size, hidden_size)
@@ -34,6 +34,8 @@ class MultiHeadAttentionLayer(nn.Module):
         query_output = self.fc_query(query)
         key_output = self.fc_key(key)
         value_output = self.fc_value(value)
+        #self.n_heads=8 
+        #self.head_size=32
 
         # Riformulazione delle dimensioni matriciali di Q,V,K
         query_output = query_output.view(b_size, -1, self.n_heads, self.head_size).permute(0, 2, 1, 3)
@@ -48,11 +50,14 @@ class MultiHeadAttentionLayer(nn.Module):
         
         # Softmax
         attention = torch.softmax(score, dim = -1)    
+
         # Moltiplico v per l'ultimo risultato ottenuto, ottenendo il risultato della Scaled Dot-Product Attention
         output = torch.matmul(self.dp(attention), value_output)
+
         # Eseguo la concatenazione dei prodotti ottenuti, faccio passare il risultato attraverso un layer lineare e restituisco l'output della Multi-Head Attention
-        output = output.permute(0, 2, 1, 3).contiguous()
+        output = output.permute(0, 2, 1, 3).contiguous() #contiguous serve? i risultati sono gli stessi anche senza
         output = output.view(b_size, -1, self.hidden_size)  
+
         output = self.fc_out(output)
 
         return output
@@ -115,7 +120,8 @@ class Encoder(nn.Module):
     # Inizializzazione dei layer di encoding
     def __init__(self, input_size, hidden_size, n_layers, n_heads, ff_size, dropout, MAX_LENGTH=100):
         super().__init__()
-        
+
+        # Il primo parametro è la dimensione del dizionario (per il pos_encoding è la lunghezza max della frase), il secondo è la dimensione che varanno i vettori
         self.te = nn.Embedding(input_size, hidden_size)
         self.pe = nn.Embedding(MAX_LENGTH, hidden_size)
         
@@ -135,13 +141,14 @@ class Encoder(nn.Module):
         input_size = input.shape[1]
         
         # Embedding + Positional Encoding dell'input
-        pos = torch.arange(0, input_size).unsqueeze(0).repeat(b_size, 1)
-        input = self.dp((self.te(input) * self.coefficient) + self.pe(pos))
+        #pos = torch.arange(0, input_size).unsqueeze(0).repeat(b_size, 1)   #######################
+        pos = torch.arange(0, input_size).unsqueeze(0)
+        input = self.dp((self.te(input) * self.coefficient) + self.pe(pos)) # Dropout non necessario? il risultato è lo stesso
 
         # Passaggio per gli n_layers di encoding
         for layer in self.encode_sequence:
             input = layer(input, input_mask)
-  
+            
         return input
 
 

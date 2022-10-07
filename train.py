@@ -116,8 +116,13 @@ class Trainer():
             train_loss /= len(self.data_loader)
 
             end_time = int(time.time() - start_time)
-            torch.save(self.transformer.state_dict(), saved_model_directory + self.dizionario_ita.name +
-            '2' + self.dizionario_ing.name + '/transformer_model_{}.pt'.format(epoch))
+
+            if (epoch+1 == epochs):
+                torch.save(self.transformer.state_dict(), saved_model_directory + self.dizionario_ita.name +
+                '2' + self.dizionario_ing.name + '/transformer_model.pt'.format(epoch))
+            else:
+                torch.save(self.transformer.state_dict(), saved_model_directory + self.dizionario_ita.name +
+                '2' + self.dizionario_ing.name + '/transformer_model_{}.pt'.format(epoch))
 
             # Stampo le informazioni relative a ogni epoca
             print('Epoca: {}  -->  Tempo trascorso: {}s  -  Tempo stimato rimanente: {}s.'.format(epoch, end_time, (epochs-epoch)*end_time))
@@ -134,7 +139,7 @@ def main():
 
     # Aggiunta degli argomenti (iperparametri) e delle directory
     parser.add_argument('--MAX_LENGTH', type=int, default=60, help='Massimo numero di parole nella frase di input')
-    parser.add_argument('--MAX_FILE_SIZE', type=int, default=2000, help='Massimo numero di righe lette dal dataset')
+    parser.add_argument('--MAX_FILE_SIZE', type=int, default=100, help='Massimo numero di righe lette dal dataset')
     parser.add_argument('--batch_size', type=int, default=128, help='Dimensione delle batch che passano per la rete a ogni iterazione')
     parser.add_argument('--lr', type=float, default=0.0005, help='Learning rate')
     parser.add_argument('--hidden_size', type=int, default=256, help='Numero di hidden layers')
