@@ -1,24 +1,21 @@
-from base64 import encode
 import torch
-
-# Import per ricevere eventuali argomenti di input
 import argparse
-
-# Per caricamento e gestione dizionari
 import pickle
 
-# Import da altri moduli esterni
 from componenti import Transformer, Encoder, Decoder
 from funzioni import *
-from train import Trainer
 
 # Token che indica inizio della stringa: SOS = Start of String
 SOS_TOKEN = 1
 
+
+
+
 # Carico i dizionari che durante il train erano stati creati e serializzati
-def carica_vocabolario(path):
-    f = open(path, 'rb')
+def carica_vocabolario(percorso):
+    f = open(percorso, 'rb')
     return pickle.load(f)
+
 
 
 
@@ -31,13 +28,13 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     frase_normalizzata = normalizeString(frase_da_tradurre)
     
     # Tokenizzazione della frase normalizzata
-    frase_tokenizzata = tokenize(frase_normalizzata, vocab_ita)
+    frase_tokenizzata = tokenize(frase_normalizzata, vocab_ita, max_len)
 
     # Trasformazione in tensore della frase tokenizzata
     frase_tensore = torch.LongTensor(frase_tokenizzata).unsqueeze(0)
 
     # Calcola la input mask
-    input_mask = model.make_input_mask(frase_tensore)
+    input_mask = model.crea_input_mask(frase_tensore)
     
     # Passaggio per l'Encoder
     with torch.no_grad():
@@ -49,7 +46,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     # Ciclo for per andare a riempire token_risposta, passando attraverso il decoder
     for i in range(max_len):
         tensore_risposta = torch.LongTensor(token_risposta).unsqueeze(0)
-        target_mask = model.make_target_mask(tensore_risposta)
+        target_mask = model.crea_target_mask(tensore_risposta)
     
         # Passaggio per il Decoder
         with torch.no_grad():
@@ -58,7 +55,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
         # Ottenimento del token corretto per la traduzione
         pred_token = output.argmax(2)[:,-1].item()
         token_risposta.append(pred_token)
-        
+         
         # Interrompo quando arrivo al token EOS
         if pred_token == EOS_TOKEN:
             break
@@ -79,9 +76,9 @@ def main():
     parser = argparse.ArgumentParser(description='Iperparametri per la rete')
 
 
-    parser.add_argument('--frase', type=str, default='Oggi è una bellissima giornata', help='Frase da tradurre')
+    parser.add_argument('--frase', type=str, default='Io sono uno studente', help='Frase da tradurre')
 
-    parser.add_argument('--MAX_LENGTH', type=int, default=60, help='Massimo numero di parole nella frase di input')
+    parser.add_argument('--max_len', type=int, default=60, help='Massimo numero di parole nella frase di input')
     parser.add_argument('--hidden_size', type=int, default=256, help='Numero di hidden layers')
     parser.add_argument('--encoder_layers', type=int, default=3, help='Numero di encoder layers')
     parser.add_argument('--decoder_layers', type=int, default=3, help='Numero di decoder layers')
@@ -100,7 +97,7 @@ def main():
     frase_italiano = args.frase
     percorso_file = args.percorso_file
 
-    MAX_LENGTH = args.MAX_LENGTH
+    max_len = args.max_len
     hidden_size = args.hidden_size
     encoder_layers = args.encoder_layers
     decoder_layers = args.decoder_layers
@@ -130,13 +127,14 @@ def main():
     transformer.load_state_dict(torch.load(transformer_location + 'transformer_model.pt'))
 
     # Invocazione metodo traduci_frase per avviare la traduzione della frase data in ingresso
-    traduzione = traduci_frase(frase_italiano, input_lang_dic, output_lang_dic, transformer, MAX_LENGTH)
+    traduzione = traduci_frase(frase_italiano, input_lang_dic, output_lang_dic, transformer, max_len)
 
     # Stampo l'output finale
     print()
     print("Frase italiano" + ' --> ' + frase_italiano)
     print("Traduzione" + ' --> ' + traduzione)
     print()
+
 
 
 

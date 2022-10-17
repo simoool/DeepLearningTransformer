@@ -1,6 +1,8 @@
+# Token di PAD, Start Of String (SOS), End Of String (EOS)
 PAD_TOKEN = 0
 SOS_TOKEN = 1
 EOS_TOKEN = 2
+
 
 
 class Dictionary:

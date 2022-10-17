@@ -1,5 +1,3 @@
-# import librerie esterne
-
 import torch
 import time
 import argparse
@@ -15,6 +13,9 @@ PAD_TOKEN = 0
 SOS_TOKEN = 1
 EOS_TOKEN = 2
 
+
+
+
 class Trainer():
 
     # L'inizializzazione dei pesi avviene con una xavier uniform. Inizializza i pesi con valori assunti tra -a ed a, dove a è calcolato come segue:
@@ -24,15 +25,16 @@ class Trainer():
             nn.init.xavier_uniform_(model.weight.data)
 
 
-    # Inizializzazione dell'oggetto transformer
-    def __init__(self, data_directory, MAX_LENGTH, MAX_FILE_SIZE, batch_size, lr=0.0005, hidden_size=256, encoder_layers=3, decoder_layers=3,
-                 encoder_heads=8, decoder_heads=8, encoder_ff_size=512, decoder_ff_size=512, encoder_dropout=0.1, decoder_dropout=0.1):
 
-        self.MAX_LENGTH = MAX_LENGTH
-        self.MAX_FILE_SIZE = MAX_FILE_SIZE
+    # Inizializzazione dell'oggetto transformer
+    def __init__(self, data_directory, max_len, max_file_size, batch_size, lr, hidden_size, encoder_layers, decoder_layers,
+                 encoder_heads, decoder_heads, encoder_ff_size, decoder_ff_size, encoder_dropout, decoder_dropout):
+
+        self.max_len = max_len
+        self.max_file_size = max_file_size
 
         # Assegnazione degli oggetti dizionario e delle liste con le frasi prese dai dataset
-        self.dizionario_ita, self.dizionario_ing, self.lista_frasi_ita, self.lista_frasi_ing = carica_file(data_directory, self.MAX_FILE_SIZE, self.MAX_LENGTH)
+        self.dizionario_ita, self.dizionario_ing, self.lista_frasi_ita, self.lista_frasi_ing = carica_file(data_directory, self.max_file_size, self.max_len)
         
         # Aggiunge le frasi prese dai dataset ai rispettivi dizionari
         for frase in self.lista_frasi_ita:
@@ -41,15 +43,14 @@ class Trainer():
             self.dizionario_ing.add_sentence(frase)
 
         # Serializza entrambi i dizionari tramite il module pickle
-        # highest protocol è un valore costante, inserito obbligatoriamente nel comando dump
         with open('modelli_salvati/' + self.dizionario_ita.name + '2' + self.dizionario_ing.name + '/input_dic.pkl', 'wb') as f:
             pickle.dump(self.dizionario_ita, f, pickle.HIGHEST_PROTOCOL)
         with open('modelli_salvati/' + self.dizionario_ita.name + '2' + self.dizionario_ing.name + '/output_dic.pkl', 'wb') as f:
             pickle.dump(self.dizionario_ing, f, pickle.HIGHEST_PROTOCOL)
 
         # Assegnazione della lista di frasi tokenizzate per entrambi dataset
-        self.frasi_ita_token = [tokenize(sentence, self.dizionario_ita, self.MAX_LENGTH) for sentence in self.lista_frasi_ita]
-        self.frasi_ing_token = [tokenize(sentence, self.dizionario_ing, self.MAX_LENGTH) for sentence in self.lista_frasi_ing]
+        self.frasi_ita_token = [tokenize(frase, self.dizionario_ita, self.max_len) for frase in self.lista_frasi_ita]
+        self.frasi_ing_token = [tokenize(frase, self.dizionario_ing, self.max_len) for frase in self.lista_frasi_ing]
 
         self.batch_size = batch_size
 
@@ -137,8 +138,8 @@ def main():
     parser = argparse.ArgumentParser(description='Iperparametri per il train del Transformer')
 
     # Aggiunta degli argomenti (iperparametri) e delle directory
-    parser.add_argument('--MAX_LENGTH', type=int, default=60, help='Massimo numero di parole nella frase di input')
-    parser.add_argument('--MAX_FILE_SIZE', type=int, default=100, help='Massimo numero di righe lette dal dataset')
+    parser.add_argument('--max_len', type=int, default=60, help='Massimo numero di parole nella frase di input')
+    parser.add_argument('--max_file_size', type=int, default=100, help='Massimo numero di righe lette dal dataset')
     parser.add_argument('--batch_size', type=int, default=128, help='Dimensione delle batch che passano per la rete a ogni iterazione')
     parser.add_argument('--lr', type=float, default=0.0005, help='Learning rate')
     parser.add_argument('--hidden_size', type=int, default=256, help='Numero di hidden layers')
@@ -161,8 +162,8 @@ def main():
     # Creazione di nuove variabili contenenti gli oggetti passati per argomento
     # Epoche e percorso verranno passati per il train, tutti gli altri per l'inizializzazione
     data_directory = args.data_directory
-    MAX_LENGTH = args.MAX_LENGTH
-    MAX_FILE_SIZE = args.MAX_FILE_SIZE
+    max_len = args.max_len
+    max_file_size = args.max_file_size
     batch_size = args.batch_size
     lr = args.lr
     hidden_size = args.hidden_size
@@ -178,11 +179,13 @@ def main():
     percorso = args.saved_model_directory
 
     # Creazione dell'oggetto transformer (come oggetto di Trainer, dove poi verrà creato il transformer vero e proprio)
-    transformer = Trainer(data_directory, MAX_LENGTH, MAX_FILE_SIZE, batch_size, lr, hidden_size, encoder_layers, decoder_layers, 
+    transformer = Trainer(data_directory, max_len, max_file_size, batch_size, lr, hidden_size, encoder_layers, decoder_layers, 
                             encoder_heads, decoder_heads, encoder_ff_size, decoder_ff_size, encoder_dropout, decoder_dropout)
 
     # Viene chiamato il metodo train sul transformer appena creato e inizializzato
     transformer.train(epoche, percorso)
+
+
 
 
 if __name__ == "__main__":

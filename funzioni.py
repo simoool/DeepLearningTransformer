@@ -30,21 +30,21 @@ def normalizeString(s):
 
 
 # Carica i dataset (normalizzandoli e controllando la lunghezza delle frasi) e crea gli oggetti Dizionario
-def carica_file(data_dir, MAX_FILE_SIZE=100000, MAX_LENGTH=60):
-    # Apre il dataset in italiano e lo salva frase per frase in 'lista_italiano', fino a un numero di frasi pari a MAX_FILE_SIZE
+def carica_file(data_dir, max_file_size, max_len):
+    # Apre il dataset in italiano e lo salva frase per frase in 'lista_italiano', fino a un numero di frasi pari a max_file_size
     lista_italiano = []
     file_italiano = open(data_dir + '/italian-english/italian.txt','r', encoding='utf8')
     for i, (frase) in enumerate(file_italiano):
-        if i < MAX_FILE_SIZE:
+        if i < max_file_size:
             lista_italiano.append(frase)
         else:
             break
 
-    # Apre il dataset in inglese e lo salva frase per frase in 'lista_inglese', fino a un numero di frasi pari a MAX_FILE_SIZE
+    # Apre il dataset in inglese e lo salva frase per frase in 'lista_inglese', fino a un numero di frasi pari a max_file_size
     lista_inglese = []
     file_inglese = open(data_dir + '/italian-english/english.txt', 'r', encoding='utf8')
     for i, (frase) in enumerate(file_inglese):
-        if i < MAX_FILE_SIZE:
+        if i < max_file_size:
             lista_inglese.append(frase)
         else:
             break
@@ -56,12 +56,12 @@ def carica_file(data_dir, MAX_FILE_SIZE=100000, MAX_LENGTH=60):
     frasi_italiano = []
     frasi_inglese = []
 
-    # Aggiunge alle nuove liste 'frasi_italiano' e 'frasi_inglese' solo le frasi che hanno lunghezza (in termini di parole) < MAX_LENGTH.
-    # Per farlo scorre le frasi precedentemente salvate, e per ognuna crea una lista con le singole parole della frase stessa (es: ['ripresa', 'della', 'sessione']). Quindi controlla la lunghezza della lista corrente e, se è < MAX_LENGTH, la salva. 
+    # Aggiunge alle nuove liste 'frasi_italiano' e 'frasi_inglese' solo le frasi che hanno lunghezza (in termini di split_frase_frase) < max_len.
+    # Per farlo scorre le frasi precedentemente salvate, e per ognuna crea una lista con le singole split_frase_frase della frase stessa (es: ['ripresa', 'della', 'sessione']). Quindi controlla la lunghezza della lista corrente e, se è < max_len, la salva. 
     for i in range(len(frasi_italiano_normalizzate)):
-        tokens1 = frasi_italiano_normalizzate[i].split(' ')
-        tokens2 = frasi_inglese_normalizzate[i].split(' ')
-        if len(tokens1) <= MAX_LENGTH and len(tokens2) <= MAX_LENGTH:
+        token_ita = frasi_italiano_normalizzate[i].split(' ')
+        token_ing = frasi_inglese_normalizzate[i].split(' ')
+        if len(token_ita) <= max_len and len(token_ing) <= max_len:
             frasi_italiano.append(frasi_italiano_normalizzate[i])
             frasi_inglese.append(frasi_inglese_normalizzate[i])
 
@@ -76,12 +76,12 @@ def carica_file(data_dir, MAX_FILE_SIZE=100000, MAX_LENGTH=60):
 
 # Riceve una frase e il dizionario, quindi tokenizza la frase aggiungendo anche i token SOS, EOS e PAD
 # Ogni token è rappresentato dall'indice nel dizionario della relativa parola
-def tokenize(frase, vocabolario, MAX_LENGTH=60):
-    frase_spezzata = [parola for parola in frase.split(' ')]
+def tokenize(frase, vocabolario, max_len):
+    split_frase = [parola for parola in frase.split(' ')]
     token = [SOS_TOKEN]
     token += [vocabolario.word2index[parola] for parola in frase.split(' ')]
     token.append(EOS_TOKEN)
-    token += [PAD_TOKEN]*(MAX_LENGTH - len(frase_spezzata))
+    token += [PAD_TOKEN]*(max_len - len(split_frase))
     return token
 
 
