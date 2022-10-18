@@ -5,6 +5,7 @@ import pickle
 from componenti import Transformer, Encoder, Decoder
 from funzioni import *
 
+
 # Token che indica inizio della stringa: SOS = Start of String
 SOS_TOKEN = 1
 
@@ -12,14 +13,14 @@ SOS_TOKEN = 1
 
 
 # Carico i dizionari che durante il train erano stati creati e serializzati
-def carica_vocabolario(percorso):
+def carica_dizionario(percorso):
     f = open(percorso, 'rb')
     return pickle.load(f)
 
 
 
 
-def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
+def traduci_frase(frase_da_tradurre, vocab_ita, vocab_ing, model, max_len):
     
     # Disattiva alcune parti che vengono usate solo per il train, come Dropout Layers, BatchNorm Layers
     model.eval()
@@ -63,7 +64,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
     # Ottengo le parole relative agli indici appena calcolati
     vettore_traduzione =[]
     for i in token_risposta:
-        vettore_traduzione.append(vocab_eng.index2word[i])
+        vettore_traduzione.append(vocab_ing.index2word[i])
 
     # Restituisco la frase tradotta
     return ' '.join(vettore_traduzione[1:-1])
@@ -74,7 +75,6 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_eng, model, max_len):
 def main():
     # Crea l'oggetto parser di tipo ArgumentParser a cui associare gli argomenti da utilizzare
     parser = argparse.ArgumentParser(description='Iperparametri per la rete')
-
 
     parser.add_argument('--frase', type=str, default='Io sono uno studente', help='Frase da tradurre')
 
@@ -111,8 +111,8 @@ def main():
     transformer_location = percorso_file + 'italiano2inglese/'
 
     # Carico i dizionari
-    input_lang_dic = carica_vocabolario('modelli_salvati/italiano2inglese/input_dic.pkl')
-    output_lang_dic = carica_vocabolario('modelli_salvati/italiano2inglese/output_dic.pkl')
+    input_lang_dic = carica_dizionario('modelli_salvati/italiano2inglese/input_dic.pkl')
+    output_lang_dic = carica_dizionario('modelli_salvati/italiano2inglese/output_dic.pkl')
 
     # Ottengo il numero di parole salvate dai due dizionari
     input_size = input_lang_dic.n_count

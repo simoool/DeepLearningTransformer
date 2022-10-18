@@ -20,6 +20,7 @@ class MultiHeadAttentionLayer(nn.Module):
         self.fc_query = nn.Linear(hidden_size, hidden_size)
         self.fc_key = nn.Linear(hidden_size, hidden_size)
         self.fc_value = nn.Linear(hidden_size, hidden_size)
+
         self.fc_out = nn.Linear(hidden_size, hidden_size)
     
         self.dp = nn.Dropout(dropout)
@@ -43,7 +44,7 @@ class MultiHeadAttentionLayer(nn.Module):
         # (Q*K)/sqrt(head_size)
         score = torch.matmul(query_output, key_output.permute(0, 1, 3, 2)) / self.coefficient
 
-        # Metto dei numeri molto piccoli in corrispondenza delle posizioni in cui avrei i PAD token, così che non vengano considerate 
+        # Metto dei numeri molto piccoli in corrispondenza delle posizioni dei PAD token, così che non vengano considerate 
         score = score.masked_fill(mask==0, -1e10)
         
         # Softmax
@@ -56,7 +57,6 @@ class MultiHeadAttentionLayer(nn.Module):
         output = output.permute(0, 2, 1, 3).contiguous()
         output = output.view(dim, -1, self.hidden_size)  
 
-        # Linearizzazione
         output = self.fc_out(output)
 
         return output
@@ -69,7 +69,7 @@ class FeedForwardLayer(nn.Module):
     def __init__(self, hidden_size, ff_size, dropout):
         super().__init__()
 
-        # Creazione del FF layer formato da un linear,una reLu, un dropout e un'altra linear, come espresso dal paper di descrizione della struttura del Transformer
+        # Creazione del FF layer formato da un linear, una ReLu, un dropout e un'altra linear, come espresso dal paper di descrizione della struttura del Transformer
         self.ff_layer = nn.Sequential(
             nn.Linear(hidden_size, ff_size),
             nn.ReLU(),           
@@ -116,15 +116,14 @@ class EncoderLayer(nn.Module):
 
 class Encoder(nn.Module):
 
-    # Inizializzazione dei layer di encoding
+    # Inizializzazione dell'Encoder
     def __init__(self, input_size, hidden_size, n_layers, n_heads, ff_size, dropout, max_len=100):
         super().__init__()
 
-        # Il primo parametro è la dimensione del dizionario (per il pos_encoding è la lunghezza max della frase), il secondo è la dimensione che varanno i vettori
         self.te = nn.Embedding(input_size, hidden_size)
         self.pe = nn.Embedding(max_len, hidden_size)
         
-        # Creo la sequenza di layer di encoding, tanti quanti forniti come iperparametro
+        # Creo la sequenza di n_layers di encoding
         encoding_layers = []
         for _ in range(n_layers):
             encoding_layers.append(EncoderLayer(hidden_size, n_heads, ff_size, dropout))
@@ -138,7 +137,7 @@ class Encoder(nn.Module):
     def forward(self, input, input_mask):
         input_size = input.shape[1]
         
-        # Embedding + Positional Encoding dell'input
+        # Embedding + Positional Encoding
         pos = torch.arange(0, input_size).unsqueeze(0)
         input = self.dp((self.te(input) * self.coefficient) + self.pe(pos))
 
@@ -187,7 +186,7 @@ class DecoderLayer(nn.Module):
 
 class Decoder(nn.Module):
 
-    # Inizializzazione dei layer di encoding
+    # Inizializzazione del Decoder
     def __init__(self, output_size, hidden_size, n_layers, n_heads, ff_size, dropout, max_len=100):
         super().__init__()
         
@@ -210,7 +209,7 @@ class Decoder(nn.Module):
     def forward(self, target, encoded_input, target_mask, input_mask):    
         target_size = target.shape[1]
         
-        # Embedding + Positional Encoding dell'input (tensore contenente i token relativi alle parole in inglese, che si aggiorna a ogni passaggio per il decoder)
+        # Embedding + Positional Encoding
         pos = torch.arange(0, target_size).unsqueeze(0)
         target = self.dp((self.te(target) * self.coefficient) + self.pe(pos))
 
@@ -218,7 +217,7 @@ class Decoder(nn.Module):
         for layer in self.decode_sequence:
             target = layer(target, encoded_input, target_mask, input_mask)
 
-        # Il layer lineare restituisce un tensore in cui ogni vettore ha dimensione pari a quella del vocabolario in inglese
+        # Linearizzazione e Softmax
         output_lin = self.fc_out(target)
         output = torch.softmax(output_lin, dim=-1)
 
@@ -232,7 +231,6 @@ class Transformer(nn.Module):
     def __init__(self, encoder, decoder, padding_index=0):
         super().__init__()
         
-        # Assegnazione dei parametri passati in input, tra cui le strutture Encoder e Decoder
         self.encoder = encoder
         self.decoder = decoder
         self.padding_index = padding_index

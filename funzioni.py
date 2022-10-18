@@ -4,21 +4,20 @@ import torch
 
 from dictionary import Dictionary
 
+
 PAD_TOKEN = 0
 SOS_TOKEN = 1
 EOS_TOKEN = 2
 
 
 
+# Funzioni per la normalizzazione
 
-#https://stackoverflow.com/a/518232/2809427
 def unicodeToAscii(s):
     return ''.join(
         c for c in unicodedata.normalize('NFD', s)
         if unicodedata.category(c) != 'Mn'
     )
-
-
 
 def normalizeString(s):
     s = unicodeToAscii(s.lower().strip())
@@ -29,8 +28,9 @@ def normalizeString(s):
 
 
 
-# Carica i dataset (normalizzandoli e controllando la lunghezza delle frasi) e crea gli oggetti Dizionario
+# Carica i dataset (normalizzandoli e controllando la lunghezza delle frasi) e crea gli oggetti Dictionary
 def carica_file(data_dir, max_file_size, max_len):
+
     # Apre il dataset in italiano e lo salva frase per frase in 'lista_italiano', fino a un numero di frasi pari a max_file_size
     lista_italiano = []
     file_italiano = open(data_dir + '/italian-english/italian.txt','r', encoding='utf8')
@@ -49,15 +49,15 @@ def carica_file(data_dir, max_file_size, max_len):
         else:
             break
 
-    # Normalizza le frasi italiano e inglese
+    # Normalizza le frasi in italiano e in inglese
     frasi_italiano_normalizzate = list(map(normalizeString, lista_italiano))
     frasi_inglese_normalizzate = list(map(normalizeString, lista_inglese))
 
     frasi_italiano = []
     frasi_inglese = []
 
-    # Aggiunge alle nuove liste 'frasi_italiano' e 'frasi_inglese' solo le frasi che hanno lunghezza (in termini di split_frase_frase) < max_len.
-    # Per farlo scorre le frasi precedentemente salvate, e per ognuna crea una lista con le singole split_frase_frase della frase stessa (es: ['ripresa', 'della', 'sessione']). Quindi controlla la lunghezza della lista corrente e, se è < max_len, la salva. 
+    # Aggiunge alle nuove liste 'frasi_italiano' e 'frasi_inglese' solo le frasi che hanno lunghezza (in termini di parole) < max_len.
+    # Per farlo scorre le frasi precedentemente salvate, e per ognuna crea una lista con le singole parole della frase stessa (es: ['ripresa', 'della', 'sessione']). Quindi controlla la lunghezza della lista corrente e, se è < max_len, la salva. 
     for i in range(len(frasi_italiano_normalizzate)):
         token_ita = frasi_italiano_normalizzate[i].split(' ')
         token_ing = frasi_inglese_normalizzate[i].split(' ')
@@ -65,7 +65,7 @@ def carica_file(data_dir, max_file_size, max_len):
             frasi_italiano.append(frasi_italiano_normalizzate[i])
             frasi_inglese.append(frasi_inglese_normalizzate[i])
 
-    # Crea gli oggetti dizionario
+    # Crea gli oggetti Dictionary
     diz_italiano = Dictionary('italiano')
     diz_inglese = Dictionary('inglese')
 
@@ -74,7 +74,7 @@ def carica_file(data_dir, max_file_size, max_len):
 
 
 
-# Riceve una frase e il dizionario, quindi tokenizza la frase aggiungendo anche i token SOS, EOS e PAD
+# Riceve una frase e il dizionario, quindi tokenizza la frase aggiungendo i token SOS, EOS e PAD
 # Ogni token è rappresentato dall'indice nel dizionario della relativa parola
 def tokenize(frase, vocabolario, max_len):
     split_frase = [parola for parola in frase.split(' ')]
@@ -88,7 +88,7 @@ def tokenize(frase, vocabolario, max_len):
 
 
 # Partendo dalle liste di frasi tokenizzate, costruisce delle batch prendendone batch_size a ogni iterazione.
-# Successivamente, partendo dalle batch, costruisce i rispettivi tensori. Questi verranno restituiti nella lista (a coppie) batches
+# Successivamente, partendo dalle batch, costruisce i rispettivi tensori. Questi verranno restituiti (a coppie) nella lista batches
 def crea_batch(lingua_italiano, lingua_inglese, batch_size):
     batches = []
     for i in range(0, len(lingua_italiano), batch_size):

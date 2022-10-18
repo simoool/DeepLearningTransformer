@@ -8,7 +8,7 @@ import pickle
 from componenti import *
 from funzioni import *
 
-# Costanti usate anche negli altri moduli
+
 PAD_TOKEN = 0
 SOS_TOKEN = 1
 EOS_TOKEN = 2
@@ -69,7 +69,7 @@ class Trainer():
         self.transformer = Transformer(encoder_part, decoder_part, PAD_TOKEN)
         self.transformer.apply(self.inizializza_pesi)
 
-        # Definizione della funzione di loss e dell'optimizer, utilizzando rispettivamente Cross-Entropy e Adam
+        # Definizione della funzione di loss e dell'optimizer
         self.loss_func = nn.CrossEntropyLoss(ignore_index=PAD_TOKEN)
         self.optimizer = optim.Adam(self.transformer.parameters(), lr=lr)
 
@@ -89,7 +89,7 @@ class Trainer():
             train_loss = 0
 
             for input, target in self.batches:
-                # Imposta il gradiente a zero, perchè a ogni backpropagation si somma il gradiente corrente con i precedenti
+                # Imposta il gradiente a zero: a ogni backpropagation si somma il gradiente corrente con i precedenti
                 self.optimizer.zero_grad()
 
                 # Ottiene l'output e la sua dimensione passando attraverso il transformer
@@ -137,7 +137,7 @@ def main():
     # Crea l'oggetto parser di tipo ArgumentParser a cui associare gli argomenti da utilizzare
     parser = argparse.ArgumentParser(description='Iperparametri per il train del Transformer')
 
-    # Aggiunta degli argomenti (iperparametri) e delle directory
+    # Aggiunta degli iperparametri e delle directory
     parser.add_argument('--max_len', type=int, default=60, help='Massimo numero di parole nella frase di input')
     parser.add_argument('--max_file_size', type=int, default=100, help='Massimo numero di righe lette dal dataset')
     parser.add_argument('--batch_size', type=int, default=128, help='Dimensione delle batch che passano per la rete a ogni iterazione')
@@ -156,7 +156,6 @@ def main():
     parser.add_argument('--data_directory', type=str, default='data', help='Cartella contenente i dataset')
     parser.add_argument('--saved_model_directory', type=str, default='modelli_salvati/', help='Cartella in cui salvare il modello')
 
-    # Assegnazione vera e propria dei parametri
     args = parser.parse_args()
 
     # Creazione di nuove variabili contenenti gli oggetti passati per argomento
