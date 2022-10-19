@@ -20,7 +20,7 @@ def carica_dizionario(percorso):
 
 
 
-def traduci_frase(frase_da_tradurre, vocab_ita, vocab_ing, model, max_len):
+def traduci_frase(frase_da_tradurre, diz_ita, diz_ing, model, max_len):
     
     # Disattiva alcune parti che vengono usate solo per il train, come Dropout Layers, BatchNorm Layers
     model.eval()
@@ -29,7 +29,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_ing, model, max_len):
     frase_normalizzata = normalizeString(frase_da_tradurre)
     
     # Tokenizzazione della frase normalizzata
-    frase_tokenizzata = tokenize(frase_normalizzata, vocab_ita, max_len)
+    frase_tokenizzata = tokenize(frase_normalizzata, diz_ita, max_len)
 
     # Trasformazione in tensore della frase tokenizzata
     frase_tensore = torch.LongTensor(frase_tokenizzata).unsqueeze(0)
@@ -64,7 +64,7 @@ def traduci_frase(frase_da_tradurre, vocab_ita, vocab_ing, model, max_len):
     # Ottengo le parole relative agli indici appena calcolati
     vettore_traduzione =[]
     for i in token_risposta:
-        vettore_traduzione.append(vocab_ing.index2word[i])
+        vettore_traduzione.append(diz_ing.index2word[i])
 
     # Restituisco la frase tradotta
     return ' '.join(vettore_traduzione[1:-1])
@@ -111,12 +111,12 @@ def main():
     transformer_location = percorso_file + 'italiano2inglese/'
 
     # Carico i dizionari
-    input_lang_dic = carica_dizionario('modelli_salvati/italiano2inglese/input_dic.pkl')
-    output_lang_dic = carica_dizionario('modelli_salvati/italiano2inglese/output_dic.pkl')
+    diz_input = carica_dizionario('modelli_salvati/italiano2inglese/input_dic.pkl')
+    diz_output = carica_dizionario('modelli_salvati/italiano2inglese/output_dic.pkl')
 
     # Ottengo il numero di parole salvate dai due dizionari
-    input_size = input_lang_dic.n_count
-    output_size = output_lang_dic.n_count
+    input_size = diz_input.n_count
+    output_size = diz_output.n_count
     
     # Creo oggetti encoder e decoder
     encoder = Encoder(input_size, hidden_size, encoder_layers, encoder_heads, encoder_ff_size, encoder_dropout)
@@ -127,7 +127,7 @@ def main():
     transformer.load_state_dict(torch.load(transformer_location + 'transformer_model.pt'))
 
     # Invocazione metodo traduci_frase per avviare la traduzione della frase data in ingresso
-    traduzione = traduci_frase(frase_italiano, input_lang_dic, output_lang_dic, transformer, max_len)
+    traduzione = traduci_frase(frase_italiano, diz_input, diz_output, transformer, max_len)
 
     # Stampo l'output finale
     print()

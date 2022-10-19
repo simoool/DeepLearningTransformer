@@ -18,8 +18,7 @@ EOS_TOKEN = 2
 
 class Trainer():
 
-    # L'inizializzazione dei pesi avviene con una xavier uniform. Inizializza i pesi con valori assunti tra -a ed a, dove a è calcolato come segue:
-    # a = gain * 6/((fan_in+fan_out)^1/2)
+    # L'inizializzazione dei pesi avviene con una xavier uniform
     def inizializza_pesi(self, model):
         if hasattr(model, 'weight') and model.weight.dim() > 1:
             nn.init.xavier_uniform_(model.weight.data)
